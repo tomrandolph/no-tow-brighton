@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import twilioClient from './twilio-client';
 import { getMessage } from './road-side';
-import * as moment from 'moment';
 
 admin.initializeApp(functions.config().firebase);
 
@@ -56,26 +55,10 @@ const sendTextToAllRecipients = async (
   return Promise.all(promises);
 };
 
-export const helloWorld = functions.https.onRequest(
-  async (request, response) => {
-    await sendTextToAllRecipients(
-      getMessage(moment('2019-11-07')),
-      msgLevel.DEBUG
-    );
-    response.send('Hello from Firebase!');
-  }
-);
-
 export const noTow = functions.pubsub
   .schedule('every monday of november 9:00')
-  .timeZone('America/New_York') // Users can choose timezone - default is America/Los_Angeles
+  .timeZone('America/New_York')
   .onRun(async context => {
     await sendTextToAllRecipients(getMessage(null, 'Tuesday'), msgLevel.DEBUG);
     return null;
   });
-// export const scheduledFunction = functions.pubsub
-//   .schedule('every 5 minutes')
-//   .onRun(context => {
-//     console.log('This will be run every 5 minutes!');
-//     return null;
-//   });
