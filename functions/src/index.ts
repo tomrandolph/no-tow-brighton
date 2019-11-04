@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import twilioClient from './twilio-client';
+import { getMessage } from './road-side';
+import * as moment from 'moment';
 
 admin.initializeApp(functions.config().firebase);
 
@@ -19,27 +21,15 @@ interface SMSRecipient {
   number: string;
 }
 
-// const sendText = async () => {
-//   const twilio = await configRef
-//     .doc('twilio')
-//     .get()
-//     .then(doc => {
-//       if (!doc.exists) {
-//         throw new Error('Twilion config does not exist!');
-//       }
-//       console.log('Data', doc.data());
-//       return doc.data();
-//     })
-//     .catch(err => {
-//       console.error('Error getting document', err);
-//     });
+const msgLevel = {
+  NORMAL: 0,
+  DEBUG: 1
+};
 
-//   const { accountSID, authToken, sendNumber } = <TwilioConfig>twilio;
-//   const sendMsg = twilioClient(accountSID, authToken);
-//   return sendMsg('+14138221200', sendNumber, 'Hey, this came from Twilio');
-// };
-
-const sendTextToAllRecipients = async () => {
+const sendTextToAllRecipients = async (
+  message: string,
+  level: number = msgLevel.NORMAL
+) => {
   const twilio = await configRef
     .doc('twilio')
     .get()
@@ -56,28 +46,33 @@ const sendTextToAllRecipients = async () => {
   const { accountSID, authToken, sendNumber } = <TwilioConfig>twilio;
   const sendMsg = twilioClient(accountSID, authToken);
   const recipients = await recipientsRef
+    .where('level', '>=', level)
     .get()
     .then(snapshot => snapshot.docs.map(doc => <SMSRecipient>doc.data()));
+  console.log('recipients:', recipients);
   const promises = recipients.map(({ name, number }) =>
-    sendMsg(number, sendNumber, `Hey ${name}. A bot sent you this.`)
+    sendMsg(number, sendNumber, `Hey ${name}. ${message}`)
   );
   return Promise.all(promises);
 };
 
 export const helloWorld = functions.https.onRequest(
   async (request, response) => {
-    await sendTextToAllRecipients();
+    await sendTextToAllRecipients(
+      getMessage(moment('2019-11-07')),
+      msgLevel.DEBUG
+    );
     response.send('Hello from Firebase!');
   }
 );
 
-// export const scheduledFunctionCrontab = functions.pubsub
-//   .schedule('every 2 minutes')
-//   .timeZone('America/New_York') // Users can choose timezone - default is America/Los_Angeles
-//   .onRun(context => {
-//     console.log('This will be run every day at 11:05 AM Eastern!');
-//     return null;
-//   });
+export const noTow = functions.pubsub
+  .schedule('every monday of november 9:00')
+  .timeZone('America/New_York') // Users can choose timezone - default is America/Los_Angeles
+  .onRun(async context => {
+    await sendTextToAllRecipients(getMessage(null, 'Tuesday'), msgLevel.DEBUG);
+    return null;
+  });
 // export const scheduledFunction = functions.pubsub
 //   .schedule('every 5 minutes')
 //   .onRun(context => {
