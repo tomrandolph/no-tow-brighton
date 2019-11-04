@@ -56,9 +56,9 @@ const sendTextToAllRecipients = async (
 };
 
 export const noTow = functions.pubsub
-  .schedule('every monday of november 9:00')
+  .schedule('every thursday of november 17:00')
   .timeZone('America/New_York')
   .onRun(async context => {
-    await sendTextToAllRecipients(getMessage(null, 'Tuesday'), msgLevel.DEBUG);
+    await sendTextToAllRecipients(getMessage(), msgLevel.DEBUG);
     return null;
   });
