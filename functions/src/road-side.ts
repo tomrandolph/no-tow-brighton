@@ -1,11 +1,13 @@
 import * as moment from 'moment';
+import 'moment-timezone';
 
 export const sweepSidesOfStreet = ['our', 'the other', 'neither'];
 
 export const parkSidesOfStreet = ['the other', 'our', 'either'];
 
 export const getSideOfStreet = (date: any = null, day: string = 'Friday') => {
-  const now = date ? date : moment();
+  const now = date ? date : moment().tz('America/New_York');
+  console.log('Today:', now.format('MMMM Do YYYY, h:mm:ss a'));
   const tomorrow = now.add(1, 'days');
   if (tomorrow.format('dddd') !== day) {
     console.error('Tomorrow:', tomorrow.format('dddd'));

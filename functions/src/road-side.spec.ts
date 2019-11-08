@@ -39,3 +39,7 @@ test('Nov 5, 2019', () => {
     .toBe(`Tomorrow they will be sweeping the other side of the street.
   Park on our side of the street.`);
 });
+
+test('Now', () => {
+  console.log(getMessage());
+});
